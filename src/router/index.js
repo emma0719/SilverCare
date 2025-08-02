@@ -1,6 +1,9 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import WelcomeView from "../views/Welcome.vue";
+import SetupView from '@/views/SetupView.vue';
+
+
 
 Vue.use(VueRouter);
 
@@ -14,10 +17,26 @@ const routes = [
     path: "/about",
     name: "about",
     // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
+    // generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+  },
+  {
+    path: "/feedback",
+    name: "feedback",
+    component: () => import("../views/Feedback.vue"),
+  },
+  {
+    path: '/submit-success',
+    name: 'SubmitSuccess',
+    component:  () => import("../views/SuccessView.vue"),
+
+  },
+  {
+    path: '/setup',
+    name: 'Setup',
+    component: SetupView
   },
 ];
 

@@ -13,5 +13,5 @@ export default {
 </script>
 
 <style>
-/* 可留空，或加全局样式 */
+
 </style>

@@ -38,6 +38,11 @@ const routes = [
     name: 'Setup',
     component: SetupView
   },
+  {
+  path: '/app',
+  name: 'LoginHomePage',
+  component: () => import('@/views/LoginHomePageView.vue')
+},
 ];
 
 const router = new VueRouter({

@@ -1,9 +1,18 @@
 <template>
   <div class="welcome-page">
     <!-- top bar-->
-<v-app-bar color="primary" dark flat height="50" class="custom-app-bar">
-  <v-toolbar-title class="hero-title">SilverCare</v-toolbar-title>
-</v-app-bar>
+ <v-app-bar
+      color="primary"
+      dark
+      flat
+      height="50"
+      class="custom-app-bar"
+      app
+      clipped-left
+    >
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <v-toolbar-title class="hero-title">SilverCare</v-toolbar-title>
+    </v-app-bar>
 
 
     <!-- main layout -->
@@ -189,9 +198,8 @@ export default {
   },
   methods: {
     login() {
-      alert(
-        `Logging in with:\nEmail: ${this.email}\nPassword: ${this.password}`
-      );
+     this.$router.push({name: 'LoginHomePage'})
+
     },
   },
 };

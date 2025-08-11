@@ -1,0 +1,3 @@
+silvercare-backend/target/** linguist-generated
+silvercare-backend/src/** linguist-detectable=true
+dist/** linguist-generated

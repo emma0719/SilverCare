@@ -1,0 +1,2 @@
+ALTER TABLE care_recipients
+    ADD COLUMN active BOOLEAN DEFAULT TRUE;

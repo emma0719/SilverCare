@@ -1,8 +1,8 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
-*.java linguist-detectable=true
-*.vue linguist-detectable=true
-*.js linguist-detectable=true
-*.html linguist-detectable=true
+*.java linguist-language=Java
+*.vue linguist-language=Vue
+*.js linguist-language=JavaScript
+*.html linguist-language=HTML
 
 Silvercare_backend/Silvercarebackend/src/main/java/* linguist-language=Java

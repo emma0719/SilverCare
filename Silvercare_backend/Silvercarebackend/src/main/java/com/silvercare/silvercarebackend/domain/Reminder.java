@@ -47,6 +47,10 @@ public class Reminder {
     @Column(name = "repeat_type", length = 10, nullable = false)
     private RepeatType repeatType;
 
+    @Column(name = "days_of_week_bits")
+    private Integer daysOfWeekBits;
+
+
 
     @Column(name = "time_points", columnDefinition = "json", nullable = false)
     private String timePoints;

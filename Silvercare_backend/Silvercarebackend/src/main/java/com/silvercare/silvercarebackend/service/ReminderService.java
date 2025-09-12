@@ -10,4 +10,6 @@ public interface ReminderService {
     void delete(Long id);
     Optional<Reminder> getById(Long id);
     Reminder update(Long id, Reminder reminder);
+
+    Reminder updateDaysOfWeek(Long id, Integer daysBits);
 }

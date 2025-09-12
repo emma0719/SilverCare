@@ -61,6 +61,14 @@ public class ReminderController {
         Reminder updated = reminderService.update(id, request.toEntity(careRecipient));
         return ResponseEntity.ok(ReminderResponse.fromEntity(updated));
     }
+    @PutMapping("/{id}/days")
+    public ResponseEntity<ReminderResponse> updateDays(
+            @PathVariable Long id,
+            @RequestParam Integer daysBits) {
+        Reminder updated = reminderService.updateDaysOfWeek(id, daysBits);
+        return ResponseEntity.ok(ReminderResponse.fromEntity(updated));
+    }
+
 
     // Delete
     @DeleteMapping("/{id}")

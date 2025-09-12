@@ -42,7 +42,7 @@ public class ReminderServiceImpl implements ReminderService {
         existing.setMedTitle(reminder.getMedTitle());
         existing.setDosageText(reminder.getDosageText());
         existing.setRepeatType(reminder.getRepeatType());
-
+        existing.setDaysOfWeekBits(reminder.getDaysOfWeekBits());
         existing.setTimePoints(reminder.getTimePoints());
         existing.setStartDate(reminder.getStartDate());
         existing.setEndDate(reminder.getEndDate());
@@ -50,5 +50,10 @@ public class ReminderServiceImpl implements ReminderService {
         existing.setCareRecipient(reminder.getCareRecipient());
 
         return reminderRepository.save(existing);
+    }
+
+    @Override
+    public Reminder updateDaysOfWeek(Long id, Integer daysBits) {
+        return null;
     }
 }

@@ -23,6 +23,7 @@ public class ReminderScheduler {
 
     private final ReminderRepository reminderRepository;
     private final ReminderProperties reminderProperties;
+    private final SmsService smsService;
     private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
@@ -50,9 +51,17 @@ public class ReminderScheduler {
                         times.stream()
                                 .map(LocalTime::parse)
                                 .filter(time -> Math.abs(Duration.between(time, now).toMinutes()) <= tolerance)
-                                .forEach(time -> log.info("💊 It’s time for {} — {}. Please take your dose now.",
-                                        r.getMedTitle(),
-                                        r.getDosageText()));
+                                .forEach(time -> {
+
+                                    log.info("💊 It’s time for {} — {}. Please take your dose now.",
+                                            r.getMedTitle(),
+                                            r.getDosageText());
+
+                                   // add sms
+                                    String msg = "💊 Reminder: " + r.getMedTitle() + " — " + r.getDosageText()
+                                            + " (Time: " + time + ")";
+                                    smsService.sendSms(r.getCareRecipient().getPhoneNumber(), msg);
+                                });
                     } catch (Exception e) {
                         log.error("❌ Failed to parse timePoints: {}", r.getTimePoints(), e);
                     }

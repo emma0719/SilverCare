@@ -9,17 +9,16 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReminderRequest {
+
     private Long careRecipientId;
     private String medTitle;
     private String dosageText;
     private Reminder.RepeatType repeatType;
-    private Integer daysOfWeek;
-    private List<String> timePoints;
+    private Integer daysOfWeekBits;   // ✅ 保持与 Entity 一致
+    private List<String> timePoints;  // 前端传数组
     private LocalDate startDate;
     private LocalDate endDate;
     private Boolean active;
@@ -32,8 +31,8 @@ public class ReminderRequest {
                     .medTitle(medTitle)
                     .dosageText(dosageText)
                     .repeatType(repeatType)
-                    .daysOfWeekBits(daysOfWeek)
-                    .timePoints(mapper.writeValueAsString(timePoints))
+                    .daysOfWeekBits(daysOfWeekBits)
+                    .timePoints(mapper.writeValueAsString(timePoints)) // ✅ 转成 JSON 字符串
                     .startDate(startDate)
                     .endDate(endDate)
                     .active(active)

@@ -56,4 +56,10 @@ public class ReminderServiceImpl implements ReminderService {
     public Reminder updateDaysOfWeek(Long id, Integer daysBits) {
         return null;
     }
+
+    @Override
+    public List<Reminder> getAll() {
+        return reminderRepository.findAll();
+    }
+
 }

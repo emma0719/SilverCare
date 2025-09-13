@@ -1,4 +1,6 @@
 package com.silvercare.silvercarebackend.domain;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,21 +22,19 @@ import java.time.OffsetDateTime;
         }
 )
 public class Reminder {
+
     public enum RepeatType {
         DAILY, WEEKLY
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     // relate to care recipient
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "care_recipient_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_reminder_recipient")
-    )
+    @ManyToOne
+    @JoinColumn(name = "care_recipient_id")
+    @JsonBackReference
     private CareRecipient careRecipient;
 
     @Column(name = "med_title", length = 100, nullable = false)
@@ -49,8 +49,6 @@ public class Reminder {
 
     @Column(name = "days_of_week_bits")
     private Integer daysOfWeekBits;
-
-
 
     @Column(name = "time_points", columnDefinition = "json", nullable = false)
     private String timePoints;

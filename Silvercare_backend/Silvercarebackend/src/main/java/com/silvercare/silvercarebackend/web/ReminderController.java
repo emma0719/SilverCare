@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reminders")
+@RequestMapping(value = "/api/reminders", produces = "application/json")
 @RequiredArgsConstructor
 public class ReminderController {
 
@@ -61,6 +61,8 @@ public class ReminderController {
         Reminder updated = reminderService.update(id, request.toEntity(careRecipient));
         return ResponseEntity.ok(ReminderResponse.fromEntity(updated));
     }
+
+    // Update only days
     @PutMapping("/{id}/days")
     public ResponseEntity<ReminderResponse> updateDays(
             @PathVariable Long id,
@@ -69,11 +71,21 @@ public class ReminderController {
         return ResponseEntity.ok(ReminderResponse.fromEntity(updated));
     }
 
-
     // Delete
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReminder(@PathVariable Long id) {
         reminderService.delete(id);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    // Read all reminders
+    @GetMapping
+    public ResponseEntity<List<ReminderResponse>> getAllReminders() {
+        return ResponseEntity.ok(
+                reminderService.getAll()
+                        .stream()
+                        .map(ReminderResponse::fromEntity)
+                        .toList()
+        );
     }
 }

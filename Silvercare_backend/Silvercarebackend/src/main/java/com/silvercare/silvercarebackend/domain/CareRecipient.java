@@ -1,9 +1,12 @@
 package com.silvercare.silvercarebackend.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -48,7 +51,7 @@ public class CareRecipient {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    // 一对多关系：一个 CareRecipient 可以有多个 Reminder
-    @OneToMany(mappedBy = "careRecipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "careRecipient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Reminder> reminders;
 }

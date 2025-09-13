@@ -12,4 +12,8 @@ public interface ReminderService {
     Reminder update(Long id, Reminder reminder);
 
     Reminder updateDaysOfWeek(Long id, Integer daysBits);
+
+    List<Reminder> getAll();
 }
+
+

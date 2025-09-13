@@ -1,176 +1,77 @@
 <template>
-  <div class="welcome-page">
-    <!-- top bar-->
- <v-app-bar
+
+  <v-app>
+    <!-- 顶部导航 -->
+    <v-app-bar
       color="primary"
       dark
       flat
-      height="50"
-      class="custom-app-bar"
+      height="64"
       app
-      clipped-left
+
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title class="hero-title">SilverCare</v-toolbar-title>
     </v-app-bar>
 
 
-    <!-- main layout -->
-    <v-container fluid class="fill-height">
-      <v-row class="fill-height">
-        <!-- function btn: 4 1 feedback -->
-        <v-col
-          cols="12"
-          md="6"
-          class="d-flex flex-column justify-center align-center"
-        >
-          <v-container class="pa-0" style="max-width: 400px">
-            <v-row dense>
-              <v-col cols="6" class="d-flex justify-center mb-4">
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      v-bind="attrs"
-                      v-on="on"
-                      color="blue-lighten-5"
-                      style="color: #0d47a1"
-                      class="font-weight-bold"
-                      width="160"
-                      height="160"
-                    >
-                      Health<br />Monitor
-                    </v-btn>
-                  </template>
-                  <span
-                    >Record and view health data like blood pressure or heart
-                    rate.</span
-                  >
-                </v-tooltip>
-              </v-col>
 
-              <v-col cols="6" class="d-flex justify-center mb-4">
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      v-bind="attrs"
-                      v-on="on"
-                      color="blue-lighten-5"
-                      style="color: #0d47a1"
-                      class="font-weight-bold"
-                      width="160"
-                      height="160"
-                    >
-                      Medicine<br />Reminder
-                    </v-btn>
-                  </template>
-                  <span>Set reminders for medications and track doses.</span>
-                </v-tooltip>
-              </v-col>
-
-              <v-col cols="6" class="d-flex justify-center">
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      v-bind="attrs"
-                      v-on="on"
-                      color="blue-lighten-5"
-                      style="color: #0d47a1"
-                      class="font-weight-bold"
-                      width="160"
-                      height="160"
-                    >
-                      Daily<br />Schedule
-                    </v-btn>
-                  </template>
-                  <span>View daily routines and upcoming appointments.</span>
-                </v-tooltip>
-              </v-col>
-
-              <v-col cols="6" class="d-flex justify-center">
-                <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  color="blue-lighten-5"
-                  style="color: #0d47a1"
-                  class="font-weight-bold"
-                  width="160"
-                  height="160"
-                  @click="$router.push('/feedback')"
-                >
-                  Feedback
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-container>
+    <!-- Hero 区域 -->
+    <v-container fluid class="py-16 hero-section">
+      <v-row align="center">
+        <!-- 左侧文字 -->
+        <v-col cols="12" md="6" class="text-left">
+          <h1 class="hero-heading mb-4">
+            Smart Care<br> Made Simple
+          </h1>
+          <p class="hero-subheading mb-6">
+            Track health data, set medication reminders, and manage daily schedules with ease.
+          </p>
         </v-col>
 
-        <!-- 右侧登录卡片 -->
-        <v-col cols="12" md="6" class="d-flex align-center justify-center">
-          <v-card class="pa-6" max-width="360" elevation="8" rounded>
-            <v-img
-              class="mx-auto mb-6"
-              max-width="228"
-              src="@/assets/welcomelogo-removebg-preview.png"
-              contain
-            />
+        <!-- 右侧按钮 -->
+        <v-col cols="12" md="6" class="d-flex justify-end align-center hero-link">
+          <v-btn color="primary" size="large" class="mr-4" @click="login">
+            Get Started
+          </v-btn>
+          <router-link
+            to="/setup"
+            class="white--text text-decoration-none font-weight-medium hero-link"
+          >
+            Create Account
+          </router-link>
+        </v-col>
+      </v-row>
+    </v-container>
 
-            <div class="text-subtitle-1 mb-2">Account</div>
+    <!-- 服务卡片区 -->
+    <v-container fluid class="py-12 service-section">
+      <v-row>
+        <v-col
+          cols="12"
+          sm="6"
+          md="3"
+          v-for="service in services"
+          :key="service.title"
+        >
+          <v-card class="pa-6 text-center service-card" elevation="4">
+            <v-icon size="40" color="primary">{{ service.icon }}</v-icon>
+            <h3 class="text-h6 font-weight-bold mt-4">{{ service.title }}</h3>
+            <p class="text-body-2 mt-2">{{ service.desc }}</p>
 
-            <v-text-field
-              v-model="email"
-              dense
-              label="Email address"
-              prepend-inner-icon="mdi-email-outline"
-              outlined
-            />
-
-            <div
-              class="text-subtitle-1 d-flex align-center justify-space-between mt-4"
-            >
-              Password
-              <a class="text-caption text-decoration-none blue--text" href="#">
-                Forgot password?
-              </a>
-            </div>
-
-            <v-text-field
-              v-model="password"
-              :type="showPassword ? 'text' : 'password'"
-              dense
-              label="Enter your password"
-              prepend-inner-icon="mdi-lock-outline"
-              :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append="showPassword = !showPassword"
-              outlined
-            />
-
-            <v-alert class="mb-6" dense type="warning" text>
-              After 3 failed login attempts, your account will be locked for 3
-              hours.
-            </v-alert>
-
-            <v-btn color="primary" block large class="mb-4" @click="login">
-              Log In
-            </v-btn>
-
-            <div class="text-center">
-              <router-link to="/setup" class="blue--text text-decoration-none">
-                Sign up now <v-icon right>mdi-chevron-right</v-icon>
-              </router-link>
-            </div>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
 
-    
-    <v-footer color="white" padless>
-      <v-row class="text-center text-white pa-6" no-gutters>
-        <v-col cols="12" md="4">
-          Reach us by phone: 1-888-205-0861 | M–F 8am–6pm
-        </v-col>
 
-        <v-col cols="12" md="4"> We care about your feelings. </v-col>
+    <!-- Footer -->
+    <v-footer color="primary" dark class="pa-6 footer-fixed">
+      <v-row class="text-center" no-gutters>
+        <v-col cols="12" md="4">
+          Reach us: 1-888-205-0861 | M–F 8am–6pm
+        </v-col>
+        <v-col cols="12" md="4">We care about your feelings.</v-col>
 
         <v-col cols="12" md="4">
           Developer Instagram
@@ -183,7 +84,9 @@
         </v-col>
       </v-row>
     </v-footer>
-  </div>
+
+  </v-app>
+
 </template>
 
 <script>
@@ -191,14 +94,37 @@ export default {
   name: "WelcomePage",
   data() {
     return {
-      email: "",
-      password: "",
-      showPassword: false,
+
+      drawer: false,
+      services: [
+        {
+          icon: "mdi-pill",
+          title: "Medication Tracking",
+          desc: "Never miss a dose with smart reminders.",
+        },
+        {
+          icon: "mdi-heart-pulse",
+          title: "Health Monitoring",
+          desc: "Keep track of vital signs and wellness data.",
+        },
+        {
+          icon: "mdi-calendar-check",
+          title: "Schedule Management",
+          desc: "Stay organized with daily routines and appointments.",
+        },
+        {
+          icon: "mdi-message-text",
+          title: "SMS Alerts",
+          desc: "Send reminders directly to caregivers or patients.",
+        },
+      ],
+
     };
   },
   methods: {
     login() {
-     this.$router.push({name: 'LoginHomePage'})
+
+      this.$router.push({ name: "LoginHomePage" });
 
     },
   },
@@ -206,36 +132,69 @@ export default {
 </script>
 
 <style scoped>
-.welcome-page {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
+
+/* 背景覆盖全局 */
+.v-application {
+  background: url("@/assets/welcomebg.jpg") center center / cover no-repeat !important;
 }
 
-/* 背景图层 */
-.welcome-page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("@/assets/welcomebg.jpg") center center / cover no-repeat;
-  opacity: 0.5;
-  z-index: 0;
+/* Hero 标题和副标题 */
+.hero-heading {
+  font-size: 4rem; /* 比原来大 */
+  font-weight: 1500;
+  color: #ffffff; /* 深蓝，更醒目 */
+  margin-left:auto
+  
 }
 
-/* 内容位于背景图之上 */
-.welcome-page > * {
-  position: relative;
-  z-index: 1;
+.hero-subheading {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #f6f6f6;
+  max-width: 600px;
 }
 
-/* 页脚下划线链接样式 */
+/* Hero 链接按钮样式 */
+.hero-link {
+  font-size: 1rem;
+  margin-top: 12px;
+  margin-right: auto;
+}
+
+/* Footer 固定 */
+.footer-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* 服务卡片浮在背景图上 */
+.service-section {
+  background: transparent !important;
+  margin-top: 200px;
+}
+
+.service-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  transition: background-color 0.3s ease;
+}
+.service-card:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* 链接下划线 */
+
 .text--underline {
   text-decoration: underline;
 }
 
+
+/* Logo 样式 */
 .hero-title {
   font-size: 20px;
-  font-family: 'Sora', sans-serif;
+  font-family: "Sora", sans-serif;
+
   font-weight: 400;
   color: white;
   letter-spacing: 6px;

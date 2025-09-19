@@ -5,9 +5,27 @@ import SetupView from '@/views/SetupView.vue';
 
 
 
+
 Vue.use(VueRouter);
 
 const routes = [
+  {
+  path: '/reminder',
+  name: 'ReminderForm',
+  component: () => import('@/views/ReminderFormView.vue')
+},
+
+  {
+  path: '/login',
+  name: 'Login',
+  component: () => import('@/views/LoginView.vue')
+},
+{
+  path: '/app',
+  name: 'LoginHomePage',
+  component: () => import('@/views/LoginHomePageView.vue')
+},
+
   {
     path: "/",
     name: "welcomepage",

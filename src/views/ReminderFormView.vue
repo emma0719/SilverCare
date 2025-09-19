@@ -1,9 +1,12 @@
 <template>
   <v-container class="pa-6" style="max-width: 700px;">
+    <!-- 返回按钮 -->
+    <v-btn color="primary" class="mb-4" @click="goBack">
+      <v-icon left>mdi-arrow-left</v-icon>
+      Back to Dashboard
+    </v-btn>
+
     <h2 class="mb-6 text-center">Medication Reminders</h2>
-
-    <!-- ✅ 调试输出，方便确认 careRecipients 是否获取成功 -->
-
 
     <!-- Reminder 列表 -->
     <v-card class="mb-6">
@@ -101,14 +104,14 @@
 </template>
 
 <script>
-import api from "@/service/api"; // ✅ 使用封装的 axios 实例
+import api from "@/service/api";
 
 export default {
   name: "ReminderFormView",
   data() {
     return {
       reminders: [],
-      careRecipients: [], // 从后端 API 获取
+      careRecipients: [],
       dialog: false,
       editing: false,
       form: {
@@ -129,6 +132,9 @@ export default {
     };
   },
   methods: {
+    goBack() {
+      this.$router.push({ name: "LoginHomePage" });
+    },
     async fetchReminders() {
       try {
         const res = await api.get("/reminders");
@@ -161,7 +167,7 @@ export default {
         active: true,
       };
       this.dialog = true;
-      this.fetchCareRecipients(); // ✅ 打开时刷新 CareRecipients
+      this.fetchCareRecipients();
     },
     editReminder(rem) {
       this.editing = true;
@@ -194,7 +200,7 @@ export default {
         console.error(err);
       }
     },
-    showSnackbar(message) {   // ✅ 修复：新增 showSnackbar 方法
+    showSnackbar(message) {
       this.snackbar.text = message;
       this.snackbar.show = true;
     },

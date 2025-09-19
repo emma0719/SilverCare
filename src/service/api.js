@@ -1,10 +1,20 @@
-import axios from 'axios';
+// src/services/api.js
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:8081/api',  // 后端接口根路径
+  baseURL: "http://localhost:8081/api",
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json"
   }
+});
+
+// 如果有 token，自动带上
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default api;

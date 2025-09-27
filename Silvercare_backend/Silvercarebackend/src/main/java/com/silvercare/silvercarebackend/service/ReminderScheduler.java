@@ -23,7 +23,8 @@ public class ReminderScheduler {
 
     private final ReminderRepository reminderRepository;
     private final ReminderProperties reminderProperties;
-    private final SmsService smsService;
+    private final SmsService infobipSmsService;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
@@ -60,7 +61,7 @@ public class ReminderScheduler {
                                    // add sms
                                     String msg = "💊 Reminder: " + r.getMedTitle() + " — " + r.getDosageText()
                                             + " (Time: " + time + ")";
-                                    smsService.sendSms(r.getCareRecipient().getPhoneNumber(), msg);
+                                    infobipSmsService.sendSms(r.getCareRecipient().getPhoneNumber(), msg);
                                 });
                     } catch (Exception e) {
                         log.error("❌ Failed to parse timePoints: {}", r.getTimePoints(), e);

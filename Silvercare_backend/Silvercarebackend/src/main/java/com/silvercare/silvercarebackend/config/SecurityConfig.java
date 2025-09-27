@@ -21,17 +21,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 前后端分离：关 CSRF；保留 CORS（Postman 不需要，但留着无害）
+                // 关闭 CSRF（前后端分离时一般关闭）
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // 允许跨域（默认配置，后续可细化）
                 .cors(cors -> { })
 
-                // 先放行认证接口；其余先全部放行，确认 403 的确来自 Security
+                // 放行特定接口
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().permitAll()         // 先全部放行，验证无 403 后再收紧
+                        .requestMatchers("/api/auth/**").permitAll()  // 登录注册接口
+                        .requestMatchers("/api/sms/**").permitAll()   // 短信接口
+                        .anyRequest().permitAll()                     // 其他请求也全部放行（开发环境）
                 )
 
-                // 关闭默认表单 & Basic
+                // 禁用 session，避免自动生成 JSESSIONID
+                .sessionManagement(session -> session.disable())
+
+                // 禁用默认表单登录 & Basic Auth
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
 

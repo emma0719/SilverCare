@@ -52,14 +52,22 @@ public class ReminderServiceImpl implements ReminderService {
         return reminderRepository.save(existing);
     }
 
-    @Override
-    public Reminder updateDaysOfWeek(Long id, Integer daysBits) {
-        return null;
-    }
 
     @Override
     public List<Reminder> getAll() {
         return reminderRepository.findAll();
     }
+
+    @Override
+    public Reminder updateDaysOfWeek(Long id, Integer daysBits) {
+        Reminder existing = reminderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
+        existing.setDaysOfWeekBits(daysBits);
+        return reminderRepository.save(existing);
+    }
+
+
+
+
 
 }

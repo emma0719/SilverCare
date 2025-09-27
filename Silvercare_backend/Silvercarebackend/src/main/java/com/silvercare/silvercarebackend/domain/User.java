@@ -1,5 +1,6 @@
 package com.silvercare.silvercarebackend.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,8 +19,11 @@ import java.util.List;
 public class User {
 
     public enum Role {
-        FAMILY, CAREGIVER, ADMIN
-    }
+        FAMILY, CAREGIVER, ADMIN;
+        @JsonCreator
+        public static Role fromString(String key) {
+            return key == null ? null : Role.valueOf(key.toUpperCase());
+    }}
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -37,12 +37,44 @@ export default {
     return {
       username: localStorage.getItem("username") || "User",
       cards: [
-        { title: "Your care-recipient", subtitle: "Click to modify care recipient", icon: "mdi-account-multiple-outline", route: "/care-recipient" },
-        { title: "Vital data", subtitle: "Click to check vital data", icon: "mdi-heart-pulse", route: "/vital-data" },
-        { title: "Reminder", subtitle: "Click to modify medical reminders", icon: "mdi-bell-outline", route: "reminder" }, // 用标记提醒特殊处理
-        { title: "Personal profile", subtitle: "Modify your personal info", icon: "mdi-account-outline", route: "/profile" },
-        { title: "Setting", subtitle: "Adjust preferences", icon: "mdi-cog-outline", route: "/settings" },
-        { title: "Log out", subtitle: "Exit and return to home page", icon: "mdi-logout", route: "logout" },
+        { 
+          title: "Your care-recipient", 
+          subtitle: "Click to modify care recipient", 
+          icon: "mdi-account-multiple-outline", 
+          route: "/care-recipient" 
+        },
+        { 
+          title: "Vital data", 
+          subtitle: "Click to check vital data", 
+          icon: "mdi-heart-pulse", 
+          route: "/vitals"   // ✅ 改成 /vitals，对应 VitalSignsView.vue
+        },
+        { 
+          title: "Reminder", 
+          subtitle: "Click to modify medical reminders", 
+          icon: "mdi-bell-outline", 
+          route: "reminder"  // 特殊处理
+        }, 
+        { 
+          title: "Personal profile", 
+          subtitle: "Modify your personal info", 
+          icon: "mdi-account-outline", 
+          route: "/profile" 
+        },
+        { 
+          title: "Setting", 
+          subtitle: "Adjust preferences", 
+          icon: "mdi-cog-outline", 
+          route: "/settings" 
+        },
+        { 
+          title: "Log out", 
+          subtitle: "Exit and return to home page", 
+          icon: "mdi-logout", 
+          route: "logout" 
+        },
+
+
       ],
     };
   },

@@ -1,0 +1,20 @@
+{
+  "appTitle": "SilverCare",
+  "login": {
+    "title": "Đăng nhập vào tài khoản của bạn",
+    "username": "Tên đăng nhập",
+    "password": "Mật khẩu",
+    "button": "Đăng nhập",
+    "error": "Đăng nhập thất bại. Vui lòng kiểm tra tên đăng nhập và mật khẩu."
+  },
+  "register": {
+    "title": "Vui lòng điền thông tin sau",
+    "username": "Tên đăng nhập",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "role": "Vai trò",
+    "button": "Hoàn tất đăng ký",
+    "back": "Quay lại trang chủ"
+  }
+}

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -58,5 +59,16 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Internal error"));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleRse(ResponseStatusException ex) {
+        // 按 RSE 自带的状态码 & 原因返回（原因就是我们在 service 里通过 messageSource 取的多语言文案）
+        HttpStatus status = (HttpStatus) ex.getStatusCode();
+        return ResponseEntity.status(status).body(Map.of(
+                "status", status.value(),
+                "error", status.getReasonPhrase(),
+                "message", ex.getReason()
+        ));
     }
 }

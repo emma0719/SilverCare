@@ -9,6 +9,7 @@ import com.silvercare.silvercarebackend.repository.VitalSignRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -30,9 +31,9 @@ public class VitalSignService {
         return vitalSignRepository.save(vitalSign);
     }
 
-
-
-    public List<VitalSign> getByCareRecipient(Long recipientId) {
-        return vitalSignRepository.findByCareRecipientIdOrderByRecordedAtDesc(recipientId);
+    // 查询某个受照顾者的体征，默认最近 N 天
+    public List<VitalSign> getByCareRecipient(Long recipientId, int days) {
+        OffsetDateTime fromTime = OffsetDateTime.now().minusDays(days);
+        return vitalSignRepository.findByCareRecipient_IdAndRecordedAtAfterOrderByRecordedAtAsc(recipientId, fromTime);
     }
 }

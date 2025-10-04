@@ -24,14 +24,15 @@ public class VitalSignController {
         return VitalSignMapper.toDTO(saved);
     }
 
+    // 新增参数 days，默认 7 天
     @GetMapping("/{recipientId}")
-    public List<VitalSignDTO> getVitalSigns(@PathVariable Long recipientId) {
-        return vitalSignService.getByCareRecipient(recipientId)
+    public List<VitalSignDTO> getVitalSigns(
+            @PathVariable Long recipientId,
+            @RequestParam(defaultValue = "7") int days
+    ) {
+        return vitalSignService.getByCareRecipient(recipientId, days)
                 .stream()
                 .map(VitalSignMapper::toDTO)
                 .toList();
     }
-
-
-
 }

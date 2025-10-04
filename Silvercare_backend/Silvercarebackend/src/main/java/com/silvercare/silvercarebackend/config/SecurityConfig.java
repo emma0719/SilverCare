@@ -1,17 +1,27 @@
 package com.silvercare.silvercarebackend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter; // ⬅️ 新增：注入你的 JWT 过滤器
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -21,25 +31,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 关闭 CSRF（前后端分离时一般关闭）
+                // CORS
+                .cors(cors -> cors.configurationSource(req -> {
+                    CorsConfiguration c = new CorsConfiguration();
+                    c.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8082","http://localhost:8083"));
+                    c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+                    c.setAllowedHeaders(List.of("Authorization","Content-Type"));
+                    c.setAllowCredentials(true);
+                    return c;
+                }))
+                // 前后端分离一般关 CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 允许跨域（默认配置，后续可细化）
-                .cors(cors -> { })
-
-                // 放行特定接口
+                // 无状态会话（不创建 JSESSIONID）
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 鉴权规则
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // 登录注册接口
-                        .requestMatchers("/api/sms/**").permitAll()   // 短信接口
-                        .anyRequest().permitAll()                     // 其他请求也全部放行（开发环境）
+                        .requestMatchers("/api/auth/**").permitAll()   // 登录/注册开放
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()                  // 其他接口需要登录
                 )
-
-                // 禁用 session，避免自动生成 JSESSIONID
-                .sessionManagement(session -> session.disable())
-
-                // 禁用默认表单登录 & Basic Auth
+                // 禁用表单 & Basic
                 .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
+                .httpBasic(AbstractHttpConfigurer::disable)
+                // 把 JWT 过滤器加到用户名密码过滤器之前
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

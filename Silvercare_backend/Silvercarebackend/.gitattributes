@@ -1,8 +1,13 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
-*.java linguist-language=Java
+# 确保 GitHub 正确检测 Java（后端）
+Silvercare_backend/Silvercarebackend/src/main/java/** linguist-detectable=true
+Silvercare_backend/Silvercarebackend/src/main/java/** linguist-language=Java
+
+# 前端语言识别
 *.vue linguist-language=Vue
 *.js linguist-language=JavaScript
 *.html linguist-language=HTML
 
-Silvercare_backend/Silvercarebackend/src/main/java/* linguist-language=Java
+# 保持行尾统一（可选）
+*.cmd text eol=crlf
+*.sh text eol=lf
+*.java text eol=lf

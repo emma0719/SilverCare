@@ -12,7 +12,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/vital-signs", produces = "application/json")
-@CrossOrigin(origins = "http://localhost:8082")
+@CrossOrigin(
+        origins = {"http://localhost:8080","http://localhost:8082","http://localhost:8083"},
+        allowCredentials = "true",
+        allowedHeaders = {"Authorization","Content-Type","Accept","Accept-Language","Cache-Control","Pragma"},
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+)
 public class VitalSignController {
 
     private final VitalSignService vitalSignService;
@@ -24,7 +29,7 @@ public class VitalSignController {
         return VitalSignMapper.toDTO(saved);
     }
 
-    // 新增参数 days，默认 7 天
+    // GET /api/vital-signs/{recipientId}?days=7
     @GetMapping("/{recipientId}")
     public List<VitalSignDTO> getVitalSigns(
             @PathVariable Long recipientId,

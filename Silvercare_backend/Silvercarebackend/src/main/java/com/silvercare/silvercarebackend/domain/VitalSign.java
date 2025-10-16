@@ -1,5 +1,6 @@
 package com.silvercare.silvercarebackend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,14 +49,18 @@ public class VitalSign {
     @Column(name = "pain_level")
     private Integer painLevel; // 0–10
 
-    // 关联到受照顾者
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 关联到受照顾者（避免序列化懒加载/递归）
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "care_recipient_id", nullable = false)
+    @JsonIgnore
+    @ToString.Exclude
     private CareRecipient careRecipient;
 
-    // 记录是谁录入
+    // 记录是谁录入（同样忽略序列化）
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorded_by_user_id")
+    @JsonIgnore
+    @ToString.Exclude
     private User recordedBy;
 
     @CreationTimestamp

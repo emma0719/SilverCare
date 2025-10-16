@@ -1,9 +1,13 @@
 package com.silvercare.silvercarebackend.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,10 +22,11 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // ⬅️ 新增：注入你的 JWT 过滤器
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -29,33 +34,58 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CORS
                 .cors(cors -> cors.configurationSource(req -> {
-                    CorsConfiguration c = new CorsConfiguration();
-                    c.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8082","http://localhost:8083"));
+                    var c = new org.springframework.web.cors.CorsConfiguration();
+                    c.setAllowedOrigins(List.of("http://localhost:8080","http://localhost:8082","http://localhost:8083"));
                     c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-                    c.setAllowedHeaders(List.of("Authorization","Content-Type"));
+                    c.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Accept-Language","Cache-Control","Pragma"));
                     c.setAllowCredentials(true);
                     return c;
                 }))
-                // 前后端分离一般关 CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-                // 无状态会话（不创建 JSESSIONID）
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 鉴权规则
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()   // 登录/注册开放
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated()                  // 其他接口需要登录
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"unauthorized\"}");
+                        })
+                        .accessDeniedHandler((req, res, ex) -> {
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"forbidden\"}");
+                        })
                 )
-                // 禁用表单 & Basic
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Care Recipients
+                        .requestMatchers(HttpMethod.GET, "/api/care-recipients/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
+                        .requestMatchers(HttpMethod.PUT, "/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
+                        .requestMatchers(HttpMethod.DELETE,"/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
+
+                        // Vital Signs
+                        .requestMatchers("/api/vital-signs/**").authenticated()
+
+                        .anyRequest().authenticated()
+                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                // 把 JWT 过滤器加到用户名密码过滤器之前
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 }

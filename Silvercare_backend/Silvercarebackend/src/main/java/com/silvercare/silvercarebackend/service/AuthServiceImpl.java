@@ -67,7 +67,6 @@ public class AuthServiceImpl implements AuthService {
                 .phoneNumber(request.getPhoneNumber())
                 .role(request.getRole())
                 .languagePreference(lang)
-                // 这些是兜底，确保永远不写 NULL
                 .active(Boolean.TRUE)
                 .notifyEmail(Boolean.TRUE)
                 .notifySms(Boolean.FALSE)
@@ -82,7 +81,9 @@ public class AuthServiceImpl implements AuthService {
             User saved = userRepository.saveAndFlush(user);
             log.info("[REG] saved id={}, generating jwt…", saved.getId());
 
-            String token = jwtUtil.generateToken(saved.getUsername()); // 若这里 NPE/IAE，会在日志里看到卡在这行
+            // ✅ 把角色写入 token（枚举转字符串）
+            String token = jwtUtil.generateToken(saved.getUsername(), saved.getRole() != null ? saved.getRole().name() : null);
+
             log.info("[REG] jwt ok, returning");
 
             return new AuthResponse(
@@ -93,16 +94,13 @@ public class AuthServiceImpl implements AuthService {
                     saved.getLanguagePreference()
             );
         } catch (DataIntegrityViolationException e) {
-            // 把最具体的数据库错误拿出来（MySQL 会包含 Duplicate entry / cannot be null / Data too long...）
             String root = (e.getMostSpecificCause() != null) ? e.getMostSpecificCause().getMessage() : e.getMessage();
             log.warn("[REG] data integrity violation: {}", root, e);
 
-            // 只有出现“Duplicate entry”才判定为重复（409）
             if (root != null && root.contains("Duplicate entry")) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, msg("auth.duplicate", locale));
             }
 
-            // 其它约束错误（NOT NULL、长度、外键等）统一返回 400，并带上简短提示，方便你定位列名
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     msg("error.db.constraint", locale) + (root != null ? (": " + root) : "")
@@ -132,7 +130,10 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLoginAt(OffsetDateTime.now());
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        // ✅ 把角色写入 token（枚举转字符串）
+        String roleStr = user.getRole() != null ? user.getRole().name() : null;
+        String token = jwtUtil.generateToken(user.getUsername(), roleStr);
+
         return new AuthResponse(
                 token,
                 user.getUsername(),
@@ -144,7 +145,6 @@ public class AuthServiceImpl implements AuthService {
 
     private static String trim(String s) { return s == null ? null : s.trim(); }
 
-    // ⬇️ 关键：带兜底，缺 key 不再 500
     private String msg(String code, Locale locale) {
         try {
             return messageSource.getMessage(code, null, locale);

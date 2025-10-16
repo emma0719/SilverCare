@@ -29,7 +29,7 @@ public class VitalSignMapper {
         if (dto == null) return null;
 
         VitalSign entity = new VitalSign();
-        entity.setId(dto.getId());
+        entity.setId(dto.getId()); // create 场景可为 null；update 场景可带 id
         entity.setTemperature(dto.getTemperature());
         entity.setHeartRate(dto.getHeartRate());
         entity.setRespiratoryRate(dto.getRespiratoryRate());
@@ -39,7 +39,7 @@ public class VitalSignMapper {
         entity.setWeight(dto.getWeight());
         entity.setBloodGlucose(dto.getBloodGlucose());
         entity.setPainLevel(dto.getPainLevel());
-        // CareRecipient 和 User 在 Service 层里用 repository 查出来再 set
+        // careRecipient / recordedBy 交给 Service 通过仓库加载后 set
         return entity;
     }
 }

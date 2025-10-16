@@ -1,5 +1,6 @@
 package com.silvercare.silvercarebackend.config;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -27,12 +30,11 @@ public class JwtUtil {
 
         byte[] keyBytes;
         try {
-            // 尝试按 Base64 解析；解析失败（任意异常）则回退到纯文本
             keyBytes = Decoders.BASE64.decode(secret);
             if (keyBytes.length < 32) {
                 throw new IllegalArgumentException("jwt.secret (Base64 decoded) must be at least 32 bytes");
             }
-        } catch (Exception ignore) {  // 这里从 IllegalArgumentException 改为 Exception
+        } catch (Exception ignore) {
             keyBytes = secret.getBytes(StandardCharsets.UTF_8);
             if (keyBytes.length < 32) {
                 throw new IllegalArgumentException("jwt.secret must be at least 32 bytes (UTF-8)");
@@ -44,9 +46,18 @@ public class JwtUtil {
     }
 
     public String generateToken(String username) {
+        return generateToken(username, null);
+    }
+
+    public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        if (role != null && !role.isBlank()) {
+            claims.put("role", role);
+        }
         long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setSubject(username) // 0.11.x API
+                .setClaims(claims)
+                .setSubject(username)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expireMillis))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -54,30 +65,20 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
     public Date extractExpiration(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
+        return extractAllClaims(token).getExpiration();
     }
 
     public boolean validateToken(String token, String expectedUsername) {
         try {
-            var claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = extractAllClaims(token);
             String subject = claims.getSubject();
             Date exp = claims.getExpiration();
             return subject != null
@@ -87,5 +88,13 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

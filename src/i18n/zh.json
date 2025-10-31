@@ -1,0 +1,52 @@
+{
+  "appTitle": "银龄关怀",
+  "login": {
+    "title": "欢迎使用 SilverCare",
+    "username": "用户名",
+    "password": "密码",
+    "button": "登录"
+  },
+  "care": {
+    "title": "受照顾者",
+    "subtitle": "管理您负责的受照顾者",
+    "search": "搜索...",
+    "newRecipient": "添加受照顾者",
+    "editRecipient": "编辑受照顾者",
+    "name": "姓名",
+    "phone": "电话",
+    "age": "年龄",
+    "address": "地址",
+    "status": "状态",
+    "actions": "操作",
+    "active": "活跃",
+    "inactive": "非活跃",
+    "noData": "暂无受照顾者",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "deleteTitle": "删除受照顾者",
+    "deleteConfirm": "确定要删除"
+  },
+  "vital": {
+    "pageTitle": "体征记录",
+    "showingData": "当前显示的数据：",
+    "recipientLabel": "受照顾者",
+    "rangeLabel": "时间范围",
+    "range7": "近 7 天",
+    "range14": "近 14 天",
+    "range30": "近 30 天",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "temperature": "体温 (°C)",
+    "heartRate": "心率 (次/分)",
+    "systolic": "收缩压",
+    "diastolic": "舒张压",
+    "spo2": "血氧 (%)",
+    "weight": "体重 (kg)",
+    "bloodGlucose": "血糖 (mg/dL)",
+    "painLevel": "疼痛等级",
+    "addRecord": "新增记录",
+    "cancel": "取消",
+    "save": "保存"
+  }
+}

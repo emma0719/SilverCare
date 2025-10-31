@@ -1,18 +1,11 @@
 <template>
   <v-app>
-    <!-- 顶部导航 -->
-    <v-app-bar
-      color="primary"
-      dark
-      flat
-      height="64"
-      app
-    >
+    <v-app-bar color="primary" dark flat height="64" app>
       <v-toolbar-title class="hero-title">{{ $t("appTitle") }}</v-toolbar-title>
       <v-spacer></v-spacer>
 
-      <!-- 语言切换 -->
       <v-select
+        prepend-inner-icon="mdi-translate"
         v-model="$i18n.locale"
         :items="[
           { text: 'English', value: 'en' },
@@ -25,10 +18,9 @@
         hide-details
         style="max-width: 150px"
         @change="onLangChange"
-      ></v-select>
+      />
     </v-app-bar>
 
-    <!-- 页面内容 -->
     <v-main>
       <router-view />
     </v-main>
@@ -40,10 +32,10 @@ export default {
   name: "App",
   methods: {
     onLangChange(lang) {
-      localStorage.setItem("lang", lang);
+      localStorage.setItem("lang", lang)
     }
   }
-};
+}
 </script>
 
 <style>
@@ -56,8 +48,6 @@ export default {
   color: white;
   text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.3);
 }
-
-/* 去掉 v-main 自动留白 */
 .v-main {
   padding-top: 0 !important;
 }

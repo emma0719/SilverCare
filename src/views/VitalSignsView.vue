@@ -1,77 +1,111 @@
 <template>
   <v-container class="vital-page">
     <v-card class="elevated-card">
-      <v-card-title class="py-4">
-        <!-- ...原有标题与筛选控件保持不变... -->
-        <div class="title-wrap">
-          <div class="page-title">Vital Signs Trend</div>
+      <!-- 顶部标题与筛选 -->
+      <v-card-title class="align-center justify-space-between py-4 px-6">
+        <div class="header-left">
+          <div class="page-title">{{ $t('vital.pageTitle') }}</div>
           <div class="page-subtitle" v-if="selectedRecipientName">
-            Showing data for: <strong>{{ selectedRecipientName }}</strong>
+            {{ $t('vital.showingData') }} <strong>{{ selectedRecipientName }}</strong>
           </div>
         </div>
-        <v-spacer></v-spacer>
 
-        <!-- Care recipient -->
-        <v-select
-          v-model="selectedRecipient"
-          :items="recipients"
-          item-text="fullName"
-          item-value="id"
-          label="Care recipient"
-          outlined dense hide-details
-          class="control"
-          attach="body"
-          :menu-props="{ bottom: true, offsetY: true, maxHeight: 320, contentClass: 'elevated-menu' }"
-          @change="fetchVitals"
-        />
-        <!-- Time range -->
-        <v-select
-          v-model="selectedRange"
-          :items="rangeItems"
-          item-text="label"
-          item-value="days"
-          label="Time range"
-          outlined dense hide-details
-          class="control ml-3"
-          attach="body"
-          :menu-props="{ bottom: true, offsetY: true, maxHeight: 320, contentClass: 'elevated-menu' }"
-          @change="fetchVitals"
-        />
+        <div class="header-controls d-flex align-center">
+          <v-select
+            v-model="selectedRecipient"
+            :items="recipients"
+            item-text="fullName"
+            item-value="id"
+            :label="$t('vital.recipientLabel')"
+            outlined dense hide-details
+            class="control"
+            attach="body"
+            :menu-props="{ bottom: true, offsetY: true, maxHeight: 320, contentClass: 'elevated-menu' }"
+            @change="fetchVitals"
+          />
+          <v-select
+            v-model="selectedRange"
+            :items="localizedRangeItems"
+            item-text="label"
+            item-value="days"
+            :label="$t('vital.rangeLabel')"
+            outlined dense hide-details
+            class="control ml-3"
+            attach="body"
+            :menu-props="{ bottom: true, offsetY: true, maxHeight: 320, contentClass: 'elevated-menu' }"
+            @change="fetchVitals"
+          />
+          <v-btn color="primary" class="ml-3" @click="openDialog">
+            <v-icon left>mdi-plus</v-icon>
+            {{ $t('vital.addRecord') }}
+          </v-btn>
+        </div>
       </v-card-title>
 
-      <v-card-text style="height: 440px" class="px-6 pb-6 pt-0">
+      <!-- 图表展示区 -->
+      <v-card-text class="chart-area px-6 pb-8">
         <div v-if="loading" class="loading-wrap">
           <v-progress-circular indeterminate size="28" width="3" color="primary"/>
-          <span class="ml-2">Loading data…</span>
+          <span class="ml-2">{{ $t('vital.loading') }}</span>
         </div>
 
         <line-chart
           v-else-if="chartData"
           :chart-data="chartData"
           :options="chartOptions"
-          style="height:100%"
+          class="chart"
         />
+
         <div v-else class="empty-wrap">
-          <v-icon large color="grey lighten-1" class="mr-2">mdi-chart-line-variant</v-icon>
-          No data in the selected range
+          <v-icon size="40" color="grey lighten-1" class="mr-2">mdi-chart-line-variant</v-icon>
+          <div>{{ $t('vital.noData') }}</div>
         </div>
       </v-card-text>
 
-      <!-- ✅ 复用的返回首页按钮 -->
-      <BackToHomeButton />
+      <!-- 底部按钮 -->
+      <v-divider></v-divider>
+      <div class="footer px-6 py-4 d-flex justify-end">
+        <BackToHomeButton />
+      </div>
     </v-card>
+
+    <!-- 添加体征对话框 -->
+    <v-dialog v-model="dialog" max-width="520px" persistent>
+      <v-card>
+        <v-card-title>{{ $t('vital.addRecord') }}</v-card-title>
+        <v-card-text>
+          <v-form ref="formRef" v-model="valid">
+            <v-text-field v-model.number="form.temperature" :label="$t('vital.temperature')" type="number" dense outlined />
+            <v-text-field v-model.number="form.heartRate" :label="$t('vital.heartRate')" type="number" dense outlined />
+            <v-text-field v-model.number="form.systolicBp" :label="$t('vital.systolic')" type="number" dense outlined />
+            <v-text-field v-model.number="form.diastolicBp" :label="$t('vital.diastolic')" type="number" dense outlined />
+            <v-text-field v-model.number="form.spo2" :label="$t('vital.spo2')" type="number" dense outlined />
+            <v-text-field v-model.number="form.weight" :label="$t('vital.weight')" type="number" dense outlined />
+            <v-text-field v-model.number="form.bloodGlucose" :label="$t('vital.bloodGlucose')" type="number" dense outlined />
+            <v-slider
+              v-model.number="form.painLevel"
+              :label="$t('vital.painLevel')"
+              thumb-label ticks max="10"
+            ></v-slider>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer/>
+          <v-btn text @click="dialog=false">{{ $t('vital.cancel') }}</v-btn>
+          <v-btn color="primary" :loading="saving" @click="saveVital">{{ $t('vital.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import axios from "axios";
+import api from "@/service/api";
 import { Line, mixins } from "vue-chartjs";
-import BackToHomeButton from "@/components/BackToHomeButton.vue"; // ← 若已全局注册可删除
-
+import BackToHomeButton from "@/components/BackToHomeButton.vue";
 const { reactiveProp } = mixins;
 
 const LineChart = {
-  name: "LineChart",
   extends: Line,
   mixins: [reactiveProp],
   props: ["options"],
@@ -81,78 +115,114 @@ const LineChart = {
 
 export default {
   name: "VitalSignsView",
-  components: { LineChart, BackToHomeButton }, // ← 若全局注册可去掉 BackToHomeButton
+  components: { LineChart, BackToHomeButton },
   data() {
     return {
       recipients: [],
       selectedRecipient: null,
       selectedRange: 7,
-      rangeItems: [
-        { label: "Last 7 days", days: 7 },
-        { label: "Last 14 days", days: 14 },
-        { label: "Last 30 days", days: 30 },
-        { label: "Last 90 days", days: 90 },
-      ],
       chartData: null,
       loading: false,
+      dialog: false,
+      valid: false,
+      saving: false,
+      form: {
+        temperature: null, heartRate: null, systolicBp: null, diastolicBp: null,
+        spo2: null, weight: null, bloodGlucose: null, painLevel: 0
+      },
       chartOptions: {
         responsive: true, maintainAspectRatio: false,
-        legend: { display: true, labels: { boxWidth: 18, usePointStyle: true } },
-        tooltips: { mode: "index", intersect: false },
-        hover: { mode: "nearest", intersect: false },
+        legend: { display: true, labels: { boxWidth: 18, fontSize: 12 } },
         scales: {
-          xAxes: [{ gridLines: { color: "rgba(0,0,0,0.05)" }, ticks: { maxRotation: 0, autoSkip: true } }],
-          yAxes: [{ gridLines: { color: "rgba(0,0,0,0.06)" }, ticks: { beginAtZero: false } }]
+          xAxes: [{ ticks: { autoSkip: true }, gridLines: { color: "rgba(0,0,0,0.05)" } }],
+          yAxes: [{ gridLines: { color: "rgba(0,0,0,0.05)" } }]
         },
-        elements: { line: { tension: 0.3, borderWidth: 2 }, point: { radius: 2 } },
+        elements: { line: { tension: 0.35, borderWidth: 2 }, point: { radius: 2 } },
       },
     };
   },
   computed: {
     selectedRecipientName() {
-      const r = this.recipients.find(x => x.id === this.selectedRecipient);
+      const r = Array.isArray(this.recipients)
+        ? this.recipients.find(x => x.id === this.selectedRecipient)
+        : null;
       return r ? r.fullName : null;
+    },
+    localizedRangeItems() {
+      return [
+        { label: this.$t('vital.range7'), days: 7 },
+        { label: this.$t('vital.range14'), days: 14 },
+        { label: this.$t('vital.range30'), days: 30 },
+      ];
     }
   },
   async mounted() {
     await this.fetchRecipients();
-    if (this.selectedRecipient) await this.fetchVitals();
   },
   methods: {
     async fetchRecipients() {
       try {
-        const res = await axios.get("http://localhost:8081/api/care-recipients");
-        this.recipients = res.data || [];
+        const res = await api.get("/care-recipients");
+        const list = Array.isArray(res.data?.data?.data)
+          ? res.data.data.data
+          : [];
+        this.recipients = list;
+        console.log("✅ Recipients response:", this.recipients);
         if (this.recipients.length > 0) {
-          const preferred = this.recipients.find(r => r.id === 3);
-          this.selectedRecipient = preferred ? preferred.id : this.recipients[0].id;
+          this.selectedRecipient = this.recipients[0].id;
+          await this.fetchVitals();
         }
-      } catch (e) { console.error("Error fetching recipients:", e); }
+      } catch (e) {
+        console.error("❌ fetchRecipients error:", e);
+      }
     },
     async fetchVitals() {
       if (!this.selectedRecipient) return;
+      this.loading = true;
       try {
-        this.loading = true;
-        const res = await axios.get(
-          `http://localhost:8081/api/vital-signs/${this.selectedRecipient}?days=${this.selectedRange}`
-        );
-        const data = res.data || [];
-        if (data.length === 0) { this.chartData = null; return; }
+        const res = await api.get(`/vital-signs/${this.selectedRecipient}`, { params: { days: this.selectedRange } });
+        const data = Array.isArray(res.data?.data?.data)
+          ? res.data.data.data
+          : [];
+        console.log("✅ Vitals response:", data);
+        if (data.length === 0) {
+          this.chartData = null;
+          return;
+        }
         const labels = data.map(i => new Date(i.recordedAt).toLocaleDateString());
         this.chartData = {
           labels,
           datasets: [
-            { label: "Temperature (°C)", data: data.map(i => i.temperature), borderColor: "#e53935", backgroundColor: "transparent", fill: false },
-            { label: "Heart Rate (bpm)",  data: data.map(i => i.heartRate),  borderColor: "#1e88e5", backgroundColor: "transparent", fill: false },
-            { label: "Systolic BP (mmHg)", data: data.map(i => i.systolicBp), borderColor: "#43a047", backgroundColor: "transparent", fill: false },
-            { label: "Diastolic BP (mmHg)", data: data.map(i => i.diastolicBp), borderColor: "#fb8c00", backgroundColor: "transparent", fill: false },
-            { label: "SpO₂ (%)",          data: data.map(i => i.spo2),       borderColor: "#8e24aa", backgroundColor: "transparent", fill: false },
+            { label: this.$t('vital.temperature'), data: data.map(i => i.temperature), borderColor: "#e53935", fill: false },
+            { label: this.$t('vital.heartRate'), data: data.map(i => i.heartRate), borderColor: "#1e88e5", fill: false },
+            { label: this.$t('vital.systolic'), data: data.map(i => i.systolicBp), borderColor: "#43a047", fill: false },
+            { label: this.$t('vital.diastolic'), data: data.map(i => i.diastolicBp), borderColor: "#fb8c00", fill: false },
+            { label: this.$t('vital.spo2'), data: data.map(i => i.spo2), borderColor: "#8e24aa", fill: false },
           ]
         };
       } catch (e) {
-        console.error("Error fetching vitals:", e);
-        this.chartData = null;
-      } finally { this.loading = false; }
+        console.error("❌ fetchVitals error:", e);
+      } finally {
+        this.loading = false;
+      }
+    },
+    openDialog() {
+      this.dialog = true;
+      this.form = { temperature: null, heartRate: null, systolicBp: null, diastolicBp: null, spo2: null, weight: null, bloodGlucose: null, painLevel: 0 };
+    },
+    async saveVital() {
+      if (!this.selectedRecipient) return;
+      this.saving = true;
+      try {
+        const payload = { ...this.form, careRecipientId: this.selectedRecipient };
+        await api.post("/vital-signs", payload);
+        this.dialog = false;
+        await this.fetchVitals();
+      } catch (e) {
+        console.error("❌ save vital error:", e);
+      } finally {
+        this.saving = false;
+      }
     }
   }
 };
@@ -163,24 +233,33 @@ export default {
   min-height: calc(100vh - 64px);
   padding-top: 96px;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
 }
 .elevated-card {
   width: 100%;
   max-width: 1100px;
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
-  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.05);
+  background-color: #fff;
 }
-.title-wrap { display: flex; flex-direction: column; }
-.page-title { font-weight: 700; font-size: 18px; letter-spacing: .3px; }
-.page-subtitle { color: #666; font-size: 13px; margin-top: 2px; }
-.control { width: 240px; }
+.page-title {
+  font-weight: 700;
+  font-size: 20px;
+}
+.page-subtitle {
+  color: #777;
+  font-size: 13px;
+}
+.chart {
+  height: 420px;
+}
 .loading-wrap, .empty-wrap {
-  height: 100%;
-  display: flex; align-items: center; justify-content: center;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #777;
 }
+.footer { background-color: #fafafa; }
 .elevated-menu { z-index: 3000 !important; }
 </style>

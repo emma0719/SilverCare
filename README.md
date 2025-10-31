@@ -8,15 +8,14 @@ Active development: Medication Reminders page.
 ---
 ## 🌟 Preview
 
-Below are main SilverCare interface screenshots.
-
 | Login | Dashboard | Care Recipients |
 |:------:|:-----------:|:----------------:|
-| ![Login](Silvercare_frontend/src/assets/screenshot/login.png) | ![Dashboard](Silvercare_frontend/src/assets/screenshot/homepage%20dashboard.png) | ![Care Recipients](Silvercare_frontend/src/assets/screenshot/care%20recipient.png) |
+| ![Login](src/assets/screenshot/login.png) | ![Dashboard](src/assets/screenshot/homepage%20dashboard.png) | ![Care Recipients](src/assets/screenshot/care%20recipient.png) |
 
 | Edit Care Recipient | Edit Vital Data | User Profile |
 |:--------------------:|:----------------:|:--------------:|
-| ![Edit Care Recipient](Silvercare_frontend/src/assets/screenshot/edit%20care%20recipient.png) | ![Edit Vital Data](Silvercare_frontend/src/assets/screenshot/edit%20vital%20data.png) | ![User Profile](Silvercare_frontend/src/assets/screenshot/user%20profile.png) |
+| ![Edit Care Recipient](src/assets/screenshot/edit%20care%20recipient.png) | ![Edit Vital Data](src/assets/screenshot/edit%20vital%20data.png) | ![User Profile](src/assets/screenshot/user%20profile.png) |
+
 
 
 ## 1. Project Overview

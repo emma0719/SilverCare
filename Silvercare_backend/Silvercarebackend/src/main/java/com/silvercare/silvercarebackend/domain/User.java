@@ -1,6 +1,7 @@
 package com.silvercare.silvercarebackend.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,6 +21,7 @@ public class User {
 
     public enum Role {
         FAMILY, CAREGIVER, ADMIN;
+
         @JsonCreator
         public static Role fromString(String key) {
             return key == null ? null : Role.valueOf(key.toUpperCase());
@@ -53,7 +55,6 @@ public class User {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-    // "en", "zh", "es", "vi"
     @Builder.Default
     @Column(name = "language_preference", length = 10, nullable = false)
     private String languagePreference = "en";
@@ -66,12 +67,8 @@ public class User {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_care_recipient",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "care_recipient_id")
-    )
+    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
+    @JsonBackReference
     private List<CareRecipient> careRecipients;
 
     // v9 扩展字段
@@ -92,11 +89,11 @@ public class User {
 
     @Builder.Default
     @Column(name = "preferred_units", length = 16, nullable = false)
-    private String preferredUnits = "METRIC"; // METRIC or IMPERIAL
+    private String preferredUnits = "METRIC";
 
     @Builder.Default
     @Column(name = "theme", length = 16, nullable = false)
-    private String theme = "LIGHT"; // LIGHT / DARK / SYSTEM
+    private String theme = "LIGHT";
 
     @Column(name = "job_title", length = 100)
     private String jobTitle;

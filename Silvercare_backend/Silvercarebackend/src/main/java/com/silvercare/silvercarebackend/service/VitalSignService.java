@@ -28,12 +28,17 @@ public class VitalSignService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
+        // ✅ 权限控制（仅允许 Admin / Family 自己 / Caregiver 自己）
+        if (!canAccessRecipient(user, recipient)) {
+            throw new SecurityException("Forbidden: user not allowed to record vitals for this recipient");
+        }
+
         vitalSign.setCareRecipient(recipient);
         vitalSign.setRecordedBy(user);
         return vitalSignRepository.save(vitalSign);
     }
 
-    // 查询某个受照顾者在最近 N 天的体征（N<=0 时默认 7 天）
+
     @Transactional(readOnly = true)
     public List<VitalSign> getByCareRecipient(Long recipientId, int days) {
         int safeDays = days > 0 ? days : 7;
@@ -41,9 +46,19 @@ public class VitalSignService {
         return vitalSignRepository.findByCareRecipient_IdAndRecordedAtAfterOrderByRecordedAtAsc(recipientId, fromTime);
     }
 
-    // 可选：获取该受照顾者最新记录（降序）
     @Transactional(readOnly = true)
     public List<VitalSign> getLatest(Long recipientId) {
         return vitalSignRepository.findByCareRecipient_IdOrderByRecordedAtDesc(recipientId);
+    }
+
+
+    private boolean canAccessRecipient(User user, CareRecipient recipient) {
+        return switch (user.getRole()) {
+            case ADMIN -> true;
+            case FAMILY -> recipient.getFamily() != null
+                    && recipient.getFamily().getId().equals(user.getId());
+            case CAREGIVER -> recipient.getUsers() != null
+                    && recipient.getUsers().stream().anyMatch(u -> u.getId().equals(user.getId()));
+        };
     }
 }

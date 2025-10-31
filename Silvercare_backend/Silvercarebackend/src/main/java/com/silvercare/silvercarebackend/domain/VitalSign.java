@@ -1,18 +1,16 @@
 package com.silvercare.silvercarebackend.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.OffsetDateTime;
 
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
 @Table(name = "vital_signs")
 public class VitalSign {
 
@@ -20,47 +18,39 @@ public class VitalSign {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 基础四大体征
     @Column(name = "temperature")
-    private Double temperature; // 摄氏度
+    private Double temperature;
 
     @Column(name = "heart_rate")
-    private Integer heartRate; // bpm
+    private Integer heartRate;
 
     @Column(name = "respiratory_rate")
-    private Integer respiratoryRate; // 次/分钟
+    private Integer respiratoryRate;
 
     @Column(name = "systolic_bp")
-    private Integer systolicBp; // 收缩压
+    private Integer systolicBp;
 
     @Column(name = "diastolic_bp")
-    private Integer diastolicBp; // 舒张压
+    private Integer diastolicBp;
 
-    // 扩展体征
     @Column(name = "spo2")
-    private Integer spo2; // %
+    private Integer spo2;
 
     @Column(name = "weight")
-    private Double weight; // kg
+    private Double weight;
 
     @Column(name = "blood_glucose")
-    private Double bloodGlucose; // mmol/L
+    private Double bloodGlucose;
 
     @Column(name = "pain_level")
-    private Integer painLevel; // 0–10
+    private Integer painLevel;
 
-    // 关联到受照顾者（避免序列化懒加载/递归）
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "care_recipient_id", nullable = false)
-    @JsonIgnore
-    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "care_recipient_id")
     private CareRecipient careRecipient;
 
-    // 记录是谁录入（同样忽略序列化）
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorded_by_user_id")
-    @JsonIgnore
-    @ToString.Exclude
     private User recordedBy;
 
     @CreationTimestamp

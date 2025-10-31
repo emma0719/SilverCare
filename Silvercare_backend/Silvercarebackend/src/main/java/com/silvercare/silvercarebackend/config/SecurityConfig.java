@@ -16,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
@@ -24,6 +23,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
+
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -34,19 +34,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(req -> {
                     var c = new org.springframework.web.cors.CorsConfiguration();
-                    c.setAllowedOrigins(List.of("http://localhost:8080","http://localhost:8082","http://localhost:8083"));
-                    c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-                    c.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Accept-Language","Cache-Control","Pragma"));
+                    c.setAllowedOrigins(List.of(
+                            "http://localhost:8080",
+                            "http://localhost:8082",
+                            "http://localhost:8083"
+                    ));
+                    c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    c.setAllowedHeaders(List.of(
+                            "Authorization",
+                            "Content-Type",
+                            "Accept",
+                            "Accept-Language",
+                            "Cache-Control",
+                            "Pragma"
+                    ));
                     c.setAllowCredentials(true);
                     return c;
                 }))
@@ -54,30 +64,36 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, ex) -> {
-                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             res.setContentType("application/json");
                             res.getWriter().write("{\"error\":\"unauthorized\"}");
                         })
                         .accessDeniedHandler((req, res, ex) -> {
-                            res.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             res.setContentType("application/json");
                             res.getWriter().write("{\"error\":\"forbidden\"}");
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Auth routes
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Care Recipients
-                        .requestMatchers(HttpMethod.GET, "/api/care-recipients/**").authenticated()
-                        .requestMatchers(HttpMethod.POST,"/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
-                        .requestMatchers(HttpMethod.PUT, "/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
-                        .requestMatchers(HttpMethod.DELETE,"/api/care-recipients/**").hasAnyAuthority("ADMIN","FAMILY","CAREGIVER")
+                        // --- Care Recipients ---
+                        .requestMatchers(HttpMethod.GET, "/api/care-recipients", "/api/care-recipients/**")
+                        .hasAnyRole("ADMIN", "FAMILY", "CAREGIVER")
+                        .requestMatchers(HttpMethod.POST, "/api/care-recipients", "/api/care-recipients/**")
+                        .hasAnyRole("ADMIN", "FAMILY")
+                        .requestMatchers(HttpMethod.PUT, "/api/care-recipients", "/api/care-recipients/**")
+                        .hasAnyRole("ADMIN", "FAMILY", "CAREGIVER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/care-recipients", "/api/care-recipients/**")
+                        .hasRole("ADMIN")
 
-                        // Vital Signs
+                        // --- Vital Signs ---
                         .requestMatchers("/api/vital-signs/**").authenticated()
 
+                        // --- Default ---
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -86,6 +102,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
 }

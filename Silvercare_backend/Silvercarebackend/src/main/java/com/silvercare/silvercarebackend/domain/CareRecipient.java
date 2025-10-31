@@ -1,12 +1,11 @@
 package com.silvercare.silvercarebackend.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,12 +35,9 @@ public class CareRecipient {
     @Column(name = "address", length = 200)
     private String address;
 
+    @Builder.Default
     @Column(name = "active", nullable = false)
     private Boolean active = true;
-
-//    // 语言偏好（例如 "en", "zh", "es"）
-//    @Column(name = "language_preference", length = 10, nullable = false)
-//    private String languagePreference = "en"; // 默认英语
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -50,6 +46,27 @@ public class CareRecipient {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "family_id")
+    @JsonBackReference
+    private User family;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    @JsonBackReference
+    private User createdBy;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_care_recipient",
+            joinColumns = @JoinColumn(name = "care_recipient_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @JsonBackReference
+    private List<User> users;
+
 
     @OneToMany(mappedBy = "careRecipient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference

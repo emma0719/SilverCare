@@ -1,74 +1,81 @@
 package com.silvercare.silvercarebackend.web;
 
+import com.silvercare.silvercarebackend.common.ApiResponse;
+import com.silvercare.silvercarebackend.util.MessageUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
-        String root = Optional.ofNullable(ex.getMostSpecificCause())
-                .map(Throwable::getMessage)
-                .orElse(ex.getMessage());
+    private final MessageUtil messageUtil;
+    private final HttpServletRequest request;
 
-        // 把数据库原始报错打出来，方便定位
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String root = Optional.ofNullable(ex.getMostSpecificCause()).map(Throwable::getMessage).orElse(ex.getMessage());
         log.error("DB constraint error: {}", root, ex);
 
-        // MySQL 常见文案判断
+        String key = "error.unexpected";
         if (root != null && root.contains("Duplicate entry")) {
-            if (root.contains("ux_users_username") || root.contains("for key 'username'"))
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Map.of("error", "Username already exists"));
-            if (root.toLowerCase().contains("email"))
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Map.of("error", "Email already exists"));
+            if (root.contains("username")) key = "auth.duplicate.username";
+            else if (root.contains("email")) key = "auth.duplicate.email";
+            else key = "auth.duplicate";
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "Duplicate key"));
+                    .body(ApiResponse.<Void>builder()
+                            .success(false)
+                            .message(messageUtil.getMessage(key, request))
+                            .build());
         }
         if (root != null && (root.contains("cannot be null") || root.contains("NULL not allowed"))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", root)); // 例如 “Column 'email' cannot be null”
-        }
-        if (root != null && root.contains("Data too long")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", root)); // 例如 “Data too long for column 'phone_number'...”
+            key = "validation.field.required";
+        } else if (root != null && root.contains("Data too long")) {
+            key = "validation.field.toolong";
         }
 
-        // 其他约束错误，统一当作 400
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", root != null ? root : "Invalid data"));
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message(messageUtil.getMessage(key, request))
+                        .build());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBad(IllegalArgumentException ex) {
-        log.error("Bad request: {}", ex.getMessage(), ex);
+    public ResponseEntity<ApiResponse<Void>> handleBad(IllegalArgumentException ex) {
+        log.warn("Bad request: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleOther(Exception ex) {
-        log.error("Unexpected error", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal error"));
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message(messageUtil.getMessage(ex.getMessage(), request))
+                        .build());
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleRse(ResponseStatusException ex) {
-        // 按 RSE 自带的状态码 & 原因返回（原因就是我们在 service 里通过 messageSource 取的多语言文案）
+    public ResponseEntity<ApiResponse<Void>> handleRse(ResponseStatusException ex) {
         HttpStatus status = (HttpStatus) ex.getStatusCode();
-        return ResponseEntity.status(status).body(Map.of(
-                "status", status.value(),
-                "error", status.getReasonPhrase(),
-                "message", ex.getReason()
-        ));
+        log.warn("ResponseStatusException: {} - {}", status, ex.getReason());
+        return ResponseEntity.status(status)
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message(messageUtil.getMessage(ex.getReason(), request))
+                        .build());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleOther(Exception ex) {
+        log.error("Unexpected error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message(messageUtil.getMessage("error.unexpected", request))
+                        .build());
     }
 }

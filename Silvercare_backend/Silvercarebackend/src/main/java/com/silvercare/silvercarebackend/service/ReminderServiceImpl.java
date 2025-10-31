@@ -1,10 +1,12 @@
 package com.silvercare.silvercarebackend.service;
 
+import com.silvercare.silvercarebackend.domain.CareRecipient;
 import com.silvercare.silvercarebackend.domain.Reminder;
+import com.silvercare.silvercarebackend.domain.User;
+import com.silvercare.silvercarebackend.repository.CareRecipientRepository;
 import com.silvercare.silvercarebackend.repository.ReminderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -13,9 +15,16 @@ import java.util.Optional;
 public class ReminderServiceImpl implements ReminderService {
 
     private final ReminderRepository reminderRepository;
+    private final CareRecipientRepository careRecipientRepository;
 
     @Override
     public Reminder create(Reminder reminder) {
+        return reminderRepository.save(reminder);
+    }
+
+    @Override
+    public Reminder create(Reminder reminder, User createdBy) {
+        reminder.setCreatedBy(createdBy);
         return reminderRepository.save(reminder);
     }
 
@@ -36,9 +45,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     public Reminder update(Long id, Reminder reminder) {
-        Reminder existing = reminderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
-
+        Reminder existing = reminderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
         existing.setMedTitle(reminder.getMedTitle());
         existing.setDosageText(reminder.getDosageText());
         existing.setRepeatType(reminder.getRepeatType());
@@ -48,26 +55,29 @@ public class ReminderServiceImpl implements ReminderService {
         existing.setEndDate(reminder.getEndDate());
         existing.setActive(reminder.getActive());
         existing.setCareRecipient(reminder.getCareRecipient());
-
         return reminderRepository.save(existing);
     }
 
-
     @Override
     public List<Reminder> getAll() {
-        return reminderRepository.findAll();
+        return reminderRepository.findAllWithCareRecipient();
     }
 
     @Override
     public Reminder updateDaysOfWeek(Long id, Integer daysBits) {
-        Reminder existing = reminderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
+        Reminder existing = reminderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
         existing.setDaysOfWeekBits(daysBits);
         return reminderRepository.save(existing);
     }
 
+    @Override
+    public List<Reminder> getByCreatedBy(User user) {
+        return reminderRepository.findByCreatedBy(user);
+    }
 
-
-
-
+    @Override
+    public List<Reminder> getByCaregiver(User caregiver) {
+        List<CareRecipient> recipients = careRecipientRepository.findByUsersContaining(caregiver);
+        return recipients.stream().flatMap(recipient -> reminderRepository.findByCareRecipient(recipient).stream()).toList();
+    }
 }

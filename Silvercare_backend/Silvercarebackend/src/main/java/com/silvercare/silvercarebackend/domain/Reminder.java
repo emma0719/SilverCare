@@ -5,22 +5,16 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(
-        name = "medication_reminders",
-        indexes = {
-                @Index(name = "idx_reminder_recipient_active", columnList = "care_recipient_id, active")
-        }
-)
+@Entity
+@Table(name = "medication_reminders", indexes = {@Index(name = "idx_reminder_recipient_active", columnList = "care_recipient_id, active")})
 public class Reminder {
 
     public enum RepeatType {
@@ -31,8 +25,7 @@ public class Reminder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // relate to care recipient
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "care_recipient_id")
     @JsonBackReference
     private CareRecipient careRecipient;
@@ -59,8 +52,16 @@ public class Reminder {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Builder.Default
     @Column(name = "active", nullable = false)
-    private Boolean active;
+    private Boolean active = true;
+
+    @PrePersist
+    public void prePersist() {
+        if (active == null) {
+            active = true;
+        }
+    }
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -69,4 +70,9 @@ public class Reminder {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    @JsonBackReference
+    private User createdBy;
 }
